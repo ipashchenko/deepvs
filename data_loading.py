@@ -5,7 +5,8 @@ import tqdm
 
 
 def get_data(var_fname_file, const_fname_file, data_dir, const_fraction=None,
-             const_number=None):
+             const_number=None, seed=1):
+    np.random.seed(seed)
     with open(var_fname_file, 'r') as fo:
         var_fnames = fo.readlines()
     var_fnames = [var_fname.strip('\n') for var_fname in var_fnames]
