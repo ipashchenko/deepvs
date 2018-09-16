@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from astropy.time import Time
 from copy import deepcopy
 from scipy.spatial import distance_matrix
+from sklearn.metrics.pairwise import pairwise_distances
 
 
 dateparser = lambda x: Time(np.float32(x), format='jd')
@@ -20,11 +21,11 @@ class LC(object):
                                   # parse_dates=['mjd'],
                                   # date_parser=dateparser)
         self.n = len(self.data)
-        self.dm_bins = [-8, -5, -3, -2.5, -2, -1.5, -1, -0.5, -0.3, -0.2, -0.1,
-                        0, 0.1, 0.2, 0.3, 0.5, 1, 1.5, 2, 2.5, 3, 5, 8]
-        self.dt_bins = [1/145, 2/145, 3/145, 4/145, 1/25, 2/25, 3/25, 1.5, 2.5,
-                        3.5, 4.5, 5.5, 7, 10, 20, 30, 60, 90, 120, 240, 600,
-                        960, 2000, 4000]
+        self.dm_edges = [-8, -5, -3, -2.5, -2, -1.5, -1, -0.5, -0.3, -0.2, -0.1,
+                         0, 0.1, 0.2, 0.3, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 5, 8]
+        self.dt_edges = [0, 1/145, 2/145, 3/145, 4/145, 1/25, 2/25, 3/25, 1.5, 2.5,
+                         3.5, 4.5, 5.5, 7, 10, 20, 30, 60, 90, 120, 240, 600,
+                         960, 2000, 4000]
 
     def __copy__(self):
         cls = self.__class__
@@ -91,6 +92,8 @@ class LC(object):
         Return ``dmdt`` representation of the light curve following
         arXiv:1709.06257
         """
+        metric = lambda x1, x2: x2-x1
+
         m = self.mag.reshape(-1, 1)
         t = self.mjd.reshape(-1, 1)
         m_dm = distance_matrix(m, m)
@@ -98,7 +101,7 @@ class LC(object):
         ind = np.triu_indices(self.n, 1)
         dmdt = np.dstack((m_dm, t_dm))[ind[0], ind[1], ...]
         h, xedges, yedges = np.histogram2d(dmdt[:, 0], dmdt[:, 1],
-                                           bins=(self.dm_bins, self.dt_bins))
+                                           bins=(self.dm_edges, self.dt_edges))
         # Normalization to [0, 255] scale
         p = self.n*(self.n-1)/2
         h *= 255/p
