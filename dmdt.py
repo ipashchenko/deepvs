@@ -85,6 +85,40 @@ class LC(object):
     def err(self, other):
         self.data['err'] = other
 
+    def add_trend(self, a, b):
+        """
+        Add trend to magnitudes.
+
+        :param a:
+            Slope of linear trend.
+        :param b:
+            Intercept of linear trend. Value at first measured time moment.
+        :return:
+            Instance of ``LC`` with trended data.
+        """
+        trended = deepcopy(self)
+        mjd = trended.mjd
+        mjd -= mjd[0]
+        trended.mag += a*mjd + b
+        return trended
+
+    def add_noise(self, sigma, update_err=False):
+        """
+        Add noise to magnitudes.
+
+        :param sigma:
+            STD of normal noise added.
+        :return:
+            Instance of ``LC`` with noised data.
+        """
+        noised = deepcopy(self)
+        noised.mag += np.random.normal(0., sigma, len(noised))
+        if update_err:
+            noised.data['err'] = noised.data['err'].apply(lambda x:
+                                                          np.sqrt(x**2 +
+                                                                  sigma**2))
+        return noised
+
     @property
     def dmdt(self):
         """
@@ -115,3 +149,4 @@ if __name__ == "__main__":
     dmdt = lc.dmdt
     plt.matshow(dmdt)
     plt.show()
+
