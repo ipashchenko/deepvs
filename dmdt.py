@@ -4,7 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from astropy.time import Time
 from copy import deepcopy
-from scipy.spatial import distance_matrix
 from sklearn.metrics.pairwise import pairwise_distances
 
 
@@ -96,8 +95,8 @@ class LC(object):
 
         m = self.mag.reshape(-1, 1)
         t = self.mjd.reshape(-1, 1)
-        m_dm = distance_matrix(m, m)
-        t_dm = distance_matrix(t, t)
+        m_dm = pairwise_distances(m, metric=metric)
+        t_dm = pairwise_distances(t, metric=metric)
         ind = np.triu_indices(self.n, 1)
         dmdt = np.dstack((m_dm, t_dm))[ind[0], ind[1], ...]
         h, xedges, yedges = np.histogram2d(dmdt[:, 0], dmdt[:, 1],
@@ -113,3 +112,6 @@ class LC(object):
 if __name__ == "__main__":
     lc = LC('/home/ilya/Dropbox/papers/ogle2/data/sc19/lmc_sc19_i_28995.dat')
     fig = lc.plot()
+    dmdt = lc.dmdt
+    plt.matshow(dmdt)
+    plt.show()
